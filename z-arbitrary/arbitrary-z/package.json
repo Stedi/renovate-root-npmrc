@@ -1,0 +1,10 @@
+{
+  "name": "config",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@nonexistent/package-a": "1",
+    "@nonexistent/root-package": "2",
+    "@nonexistent/package-z": "3"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "renovate-root-npmrc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stedi/renovate-root-npmrc.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "a-arbitrary/*",
+    "z-arbitrary/*"
+  ],
+  "dependencies": {
+    "@nonexistent/package-a": "1",
+    "@nonexistent/root-package": "2"
+  }
+}

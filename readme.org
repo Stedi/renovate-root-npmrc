@@ -1,0 +1,46 @@
+:PROPERTIES:
+:ID:       2476764f-b8e2-4d91-9b50-330d9710a228
+:END:
+#+title: Renovate root .npmrc + workspaces
+
+The purpose of this repository is to show how renovate handles multiple =package.json='s under a single, root =.npmrc=.
+
+It's a non-functioning repository, and the purpose is to generate Renovate logs to show how it resolves the same registry differently depending on the read-order of the specific =package.json= under analysis.
+
+Each =package.json= contains one unique =@nonexistent= package and a copy of all the previously "visited" packages (determined by lexicographical order of the full path).
+
+There's only one top-level =.npmrc=, sibling to the root =package.json=:
+#+begin_src
+@nonexistent:registry=https://npm.pkg.github.com/
+#+end_src
+
+The Dashboard shows the files like this (i.e. lexicographical order of the path):
+#+begin_src
+> npm
+    > a-abritrary/arbitrary-a/package.json
+    > package.json
+    > z-arbitrary/arbitrary-z/package.json
+#+end_src
+
+The [[https://app.renovatebot.com/dashboard#github/Stedi/renovate-root-npmrc/822477059][renovate logs]] show (reordered by me):
+#+begin_src
+DEBUG: http statistics
+{
+  "urls": {
+    ...
+    "https://registry.npmjs.org/@nonexistent%2Fpackage-a    (GET,404)": 1
+    "https://npm.pkg.github.com/@nonexistent%2Froot-package (GET,401)": 1,
+    "https://npm.pkg.github.com/@nonexistent%2Fpackage-z    (GET,401)": 1,
+    ...
+#+end_src
+
+From the http logs above, we can see that the correct registry resolution only happens after visiting the top-level =package.json=., as shown by the =npm.pkg.github.com= calls for =@nonexistent/root-package= and =@nonexistent/package-z=.
+
+This means that =.npmrc= declarations are "global" but sensitive to ordering.
+
+We can also see that no calls to =package-a= were made with the right registry /even after it was eventually loaded/.
+This means that if we had different =.npmrc= on different workspaces with (e.g.) specific registry configurations, only the first one observed would be applied for the packages shared between those workspaces.
+
+#+begin_quote
+More concretely: the =arbitrary-z= workspace also had a dependency on =package-a=, and by then Renovate had already loaded the top-level =.npmrc= with the registry pointers, so it could have resolved it correctly instead of reusing the incorrect cache entry resolved while processing the workspace =arbitrary-a=.
+#+end_quote
